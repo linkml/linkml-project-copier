@@ -48,12 +48,11 @@ We assume that you have full internet access.
 
   Copier is a tool for generating projects based on a template (like this one!).
   It also allows re-configuring the projects and to keep them updated when the original template changes.
-  To insert dates into the template, copier requires [jinja2_time](https://github.com/hackebrot/jinja2-time) in the copier environment.
+  To insert dates into the template, copier requires [jinja2-time](https://github.com/hackebrot/jinja2-time) in the copier environment.
   Install both with `uv tool` by running:
 
   ```shell
-  uv tool install copier
-  uv tool inject copier jinja2_time
+  uv tool install --with jinja2-time copier
   ```
 
 * **just**

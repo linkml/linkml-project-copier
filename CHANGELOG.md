@@ -17,7 +17,9 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 [Full changelog](https://github.com/dalito/linkml-project-copier/compare/v0.4.1...main)
 
-(nothing yet)
+### Fixed
+
+- Fix `uv tool` command that includes jinja2-time into copier. #90
 
 ## Release [0.4.1] - 2025-08-02
 
