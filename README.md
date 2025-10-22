@@ -31,7 +31,10 @@ We assume that you have full internet access.
 
   uv is a tool to manage Python projects and for managing isolated Python-based applications.
   You will use it in your generated project to manage dependencies and build distribution files.
-  Install uv by following their [instructions](https://docs.astral.sh/uv/getting-started/installation/)
+  Install uv by following their [instructions](https://docs.astral.sh/uv/getting-started/installation/).
+  
+  Note: Environments with private pypi repository may need extra configuration (example):
+    `export UV_DEFAULT_INDEX=https://nexus.example.com/repository/pypi-all/simple`
 
 * **copier**
 
