@@ -57,10 +57,13 @@ We assume that you have full internet access.
 
 ### Step 1: Generate the project files
 
-To generate a new LinkML project first create a new empty directory for the project and then run the following:
-
+To generate a new LinkML project first create a new empty directory for the project:
 ```shell
+mkdir path/to/new/directory
 cd path/to/new/directory
+```
+Then run copier as follows:
+```shell
 copier copy --trust https://github.com/linkml/linkml-project-copier .
 ```
 
@@ -90,6 +93,7 @@ Setup your project
 cd my-awesome-schema  # using the folder example above
 just setup
 ```
+Note: Command `JUST_TEMPDIR=/tmp just setup` may be needed in certain cases [ref](https://github.com/casey/just/?tab=readme-ov-file#script-and-shebang-recipe-temporary-files).
 
 ### Step 3: Edit the schema
 
