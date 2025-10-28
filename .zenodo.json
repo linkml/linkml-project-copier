@@ -18,7 +18,7 @@
       "affiliation": "Leibniz Institute for Catalysis, Albert-Einstein-Str. 29 A, 18059 Rostock, Germany"
     }
   ],
-  "description": "<p><a href=\"https://github.com/nfdi4cat/pid4cat-model/\"><b>linkml-project-copier</b></a> is a modern template for creating <a href=\"https://linkml.io/\"><b>LinkML</b></a>-based data modelling projects on GitHub. Built with copier, it supports lifecycle management, enabling updates of derived projects as the template evolves. The template contains various cross-platform usable recipes to help in day-to-day schema development. One of the first applications of the template is the <a href=\"https://github.com/nfdi4cat/pid4cat-model/\"><b>pid4cat-model</b></a>, a metadata model for handle-based persistent identifiers.</p>",
+  "description": "<p><a href=\"https://github.com/linkml/linkml-project-copier/\"><b>linkml-project-copier</b></a> is a modern template for creating <a href=\"https://linkml.io/\"><b>LinkML</b></a>-based data modelling projects on GitHub. Built with copier, it supports lifecycle management, enabling updates of derived projects as the template evolves. The template contains various cross-platform usable recipes to help in day-to-day schema development. One of the first applications of the template is the <a href=\"https://github.com/nfdi4cat/pid4cat-model/\"><b>pid4cat-model</b></a>, a metadata model for handle-based persistent identifiers.</p>",
   "keywords": [
     "LinkML", "template", "data modelling", "Python"
   ],

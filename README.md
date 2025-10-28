@@ -242,11 +242,7 @@ For more on updating see copier's [documentation](https://copier.readthedocs.io/
 
 ## Contributors
 
-A big thanks to all [contributors](https://github.com/nfdi4cat/pid4cat-model/graphs/contributors).
-
-Main author:
-
-* David Linke (ORCID: 0000-0002-5898-1820) - Idea, initial setup of repository and current maintainer.
+A big thanks to all [contributors](https://github.com/linkml/linkml-project-copier/graphs/contributors).
 
 ## License
 
@@ -254,5 +250,6 @@ The code in this repository is distributed under MIT license.
 
 ## Acknowledgement
 
-[linkml-project-cookiecutter](https://github.com/linkml/linkml-project-cookiecutter) provided a great basis for starting this 
-new linkml project template.
+This template was initially authored by David Linke ([dalito](https://github.com/dalito)) for the NFDI4Cat project ([doi:10.5281/zenodo.15163584](https://doi.org/10.5281/zenodo.15163584)) and later adopted here as new default LinkML project template.
+
+[linkml-project-cookiecutter](https://github.com/linkml/linkml-project-cookiecutter) provided a great basis for starting this new linkml project template.
