@@ -113,13 +113,12 @@ gen-project:
   mv {{dest}}/*.py {{pymodel}}
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
   uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{source_schema_path}}
-  @if [ ! ${{gen_owl_args}} ]; then \
-    mkdir -p {{dest}}/owl && \
+  @if [ {{gen_owl_args}} ]; then \
+    echo "using gen-owl environment args (maybe for issue/1453)" && \
     uv run gen-owl {{gen_owl_args}} {{source_schema_path}} > {{dest}}/owl/{{schema_name}}.owl.ttl || true ; \
   fi
-  @if [ ! ${{gen_ts_args}} ]; then \
-    uv run gen-typescript {{gen_ts_args}} {{source_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts || true ; \
-  fi
+  mkdir -p {{dest}}/typescript
+  uv run gen-typescript {{gen_ts_args}} {{source_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts || true
 
 # ============== Migrations recipes for Copier ==============
 
