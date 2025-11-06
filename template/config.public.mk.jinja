@@ -20,12 +20,8 @@ LINKML_GENERATORS_CONFIG_YAML=config.yaml
 LINKML_GENERATORS_DOC_ARGS=
 
 ## pass args to workaround genowl rdfs config bug (linkml#1453)
-##   (i.e. --no-type-objects --no-metaclasses --metadata-profile rdfs)
+##   (i.e. --no-type-objects --no-metaclasses --metadata-profile=rdfs)
 LINKML_GENERATORS_OWL_ARGS=
-
-## pass args to trigger experimental java/typescript generation
-LINKML_GENERATORS_JAVA_ARGS=
-LINKML_GENERATORS_TYPESCRIPT_ARGS=
 
 ## pass args to pydantic generator which isn't supported by gen-project
 ## https://github.com/linkml/linkml/issues/2537
