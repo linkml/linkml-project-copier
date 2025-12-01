@@ -26,6 +26,6 @@ jobs:
 
       # https://github.com/codespell-project/actions-codespell
       - name: Run codespell on Repo
-        uses: codespell-project/actions-codespell@v2.1
+        uses: codespell-project/actions-codespell@v2.2
         with:
           skip: '*.js'
