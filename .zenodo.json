@@ -1,6 +1,7 @@
 {
   "access_right": "open",
   "communities": [
+    {"identifier": "linkml"},
     {"identifier": "nfdi4cat"}
   ],
   "contributors": [
