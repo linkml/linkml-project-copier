@@ -24,4 +24,4 @@ jobs:
 
       # https://github.com/crate-ci/typos
       - name: Run typos on repo
-        uses: crate-ci/typos@v1.42.3
+        uses: crate-ci/typos@v1.43.5
