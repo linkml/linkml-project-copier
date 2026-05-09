@@ -59,4 +59,4 @@ jobs:
       - name: Generate schema documentation
         run: |
           just gen-doc
-          uv run mkdocs gh-deploy
+          uv run mkdocs gh-deploy --force
