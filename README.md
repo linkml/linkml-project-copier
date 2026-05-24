@@ -23,7 +23,7 @@ We assume that you have full internet access.
   Git is the version management system with which this template and your repository are managed. The template also assumes that you
   use GitHub for hosting your project which implies that you have a GitHub account.
 
-* **Python >= 3.9**
+* **Python >= 3.10**
 
   LinkML tools are mainly written in Python, so you will need a recent Python interpreter to run this generator and to use the generated project.
 
