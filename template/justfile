@@ -178,9 +178,9 @@ _check-config:
 _update-template:
   copier update --trust --skip-answered
 
-# Update LinkML to latest version
+# Update LinkML runtime and LinkML to latest versions
 _update-linkml:
-  uv add linkml --upgrade-package linkml
+  uv lock --upgrade-package linkml-runtime --upgrade-package linkml
 
 # Test schema generation
 _test-schema:
