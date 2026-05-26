@@ -15,7 +15,18 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 -->
 ## Unreleased
 
-[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.1...main)
+[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...main)
+
+### Added
+
+- Pytest-based integration test suite for the copier template, including
+  helpers module and CONTRIBUTING.md for the template. #140
+- Submission of releases to the LinkML community on Zenodo. #141
+- List of recommended mkdocs/material extensions in the project mkdocs
+  configuration. #148
+- Support for Python 3.14 in the template's CI matrix. #160
+- README in the `project/` directory so the folder is tracked even before
+  generation. #161 (fixes #124)
 
 ### Changed
 
@@ -33,7 +44,59 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 ### Fixed
 
-- Fix `uv tool` command that includes jinja2-time into copier. #90
+- `just gen-project` tolerates a missing `project/` directory. #161
+- `just _update-linkml` uses `uv lock` instead of `uv add` to avoid side-effect of adding linkml as main dependency. #159
+- Force-push to `gh-pages` during docs deployment to avoid history conflicts. #154
+- Align `uv sync` invocation in template workflows. #150
+- Skip ShEx integration test on Python 3.13 and install dependencies in the
+  integration test fixture. #140
+- Lint test tolerates warnings; example reduced to 4 warnings. #140
+
+### Changed
+
+- Drop Python 3.9 from the supported version matrix; bump minimum Python
+  requirement to >=3.10. #155
+- Update pre-commit configuration and recommend installing pre-commit via
+  `pre-commit-uv`. #145
+- Group Dependabot updates into a single monthly PR. #139
+- Update URLs throughout the project to the new linkml monorepo / template
+  location (README, migration notes, CHANGELOG). #132
+
+## Release [0.4.2] - 2026-02-25
+
+[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.1...v0.4.2)
+
+[0.4.2]: https://github.com/linkml/linkml-project-copier/releases/tag/v0.4.2
+
+### Added
+
+- Generate TypeScript output and allow regeneration of OWL artifacts. #113
+- `just` improvements: allow overriding generator commands and generating
+  additional formats. #114
+- mkdocs customizations and pymdown extensions in the generated project. #101
+- Document the `UV_DEFAULT_INDEX` environment variable for custom package
+  indexes. #97
+- Document handling of the WSL2 `just setup` error in the README. #99
+
+### Fixed
+
+- Fix `uv tool` install command so that `jinja2-time` is included with
+  copier. #90
+- Disable Jinja interpolation of `{{ }}` in generated outputs to avoid
+  double-brace breakage. #105
+- `just setup` no longer fails when the working tree is not git-clean. #102
+- Skip the docs-preview action on PRs originating from forks. #111
+
+### Changed
+
+- Adjust README and project metadata for the new home under the `linkml`
+  GitHub organization (replace `dalito` references, spelling fixes, remove
+  cookiecutter-era text). #94, #104
+- Update OWL settings in `config.yaml`. #96
+- Improve the docs-preview action and activate it by default. #115
+- Update all GitHub actions in the template to current versions. #108
+- Rename the example schema container slot `entries` to `people`. #110
+- Allow a configurable Python version in the template workflows' matrix. #100
 
 ## Release [0.4.1] - 2025-08-02
 
