@@ -94,7 +94,7 @@ Optionally customize your project if needed:
 
 * pass arguments to linkml generators via 'config.yaml' configuration file;
 * pass supported environment variables via '.env.public' configuration file;
-* Set 'export JUST_TEMPDIR=/tmp' on WSL2.
+* run 'export JUST_TEMPDIR=/tmp' on WSL2.
 
 Setup your project
 
