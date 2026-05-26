@@ -262,6 +262,6 @@ The code in this repository is distributed under MIT license.
 
 ## Acknowledgement
 
-This template was initially authored by David Linke ([dalito](https://github.com/dalito)) for the NFDI4Cat project ([doi:10.5281/zenodo.15163584](https://doi.org/10.5281/zenodo.15163584)) and later adopted here as new default LinkML project template.
+This template was initially authored by David Linke ([dalito](https://github.com/dalito)) for the NFDI4Cat project ([doi:10.5281/zenodo.15163584](https://doi.org/10.5281/zenodo.15163584)) and later adopted here as the new default LinkML project template.
 
-[linkml-project-cookiecutter](https://github.com/linkml/linkml-project-cookiecutter) provided a great basis for starting this new linkml project template.
+The now archived [linkml-project-cookiecutter](https://github.com/linkml/linkml-project-cookiecutter) served as the starting point for this template.
