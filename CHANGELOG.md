@@ -15,7 +15,13 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 -->
 ## Unreleased
 
-[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...main)
+[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.5.0...main)
+
+## Release [0.5.0] - 2026-05-27
+
+[Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...v0.5.0)
+
+[0.5.0]: https://github.com/linkml/linkml-project-copier/releases/tag/v0.5.0
 
 ### Added
 
@@ -27,6 +33,11 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - Support for Python 3.14 in the template's CI matrix. #160
 - README in the `project/` directory so the folder is tracked even before
   generation. #161 (fixes #124)
+- Auto-detect WSL2 in `just setup` and advise the user accordingly. #149
+- Copier prompt for an existing custom LICENSE file; when set, the user's
+  file is preserved and `pyproject.toml`'s `license-files` references it
+  (using the PEP 639 SPDX expression `LicenseRef-Custom`). #162 (closes #151)
+- Add Noel McLoughlin as a co-creator in the Zenodo metadata. #165
 
 ### Changed
 
@@ -54,6 +65,8 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 ### Changed
 
+- Default license for new projects is now Apache-2.0 (was MIT), matching
+  linkml core. #162
 - Drop Python 3.9 from the supported version matrix; bump minimum Python
   requirement to >=3.10. #155
 - Update pre-commit configuration and recommend installing pre-commit via
