@@ -9,6 +9,12 @@ project_name:
   type: str
   help: What is your project name?
   default: my-awesome-schema
+  # Catch invalid input and show a friendly message.
+  validator: >-
+    {% if not (project_name | regex_search('^[A-Za-z][A-Za-z0-9 _\-]*[A-Za-z0-9]$',
+       ignorecase=False)) %}
+    Use 2+ of letters, digits, space, '-', '_'; start with letter, end alnum.
+    {% endif %}
 
 project_slug:
   type: str
@@ -22,8 +28,7 @@ project_slug:
   validator: >-
     {% if not (project_slug | regex_search('^[a-z][_a-z0-9\-]+$',
        ignorecase=False)) %}
-    project_slug must start with a lowercase letter, followed by lowercase
-    letters, digits, dashes or underscores.
+    Start with a lowercase letter, then lowercase letters, digits, '-' or '_'.
     {% endif %}
 
 email:

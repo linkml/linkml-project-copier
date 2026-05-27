@@ -61,7 +61,10 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - `just gen-project` tolerates a missing `project/` directory. #161
 - Generated YAML files (GitHub Actions, mkdocs) and `test_data.py` now pass
   default yamllint/ruff checks. #170
-- `just _update-linkml` uses `uv lock` instead of `uv add` to avoid side-effect of adding linkml as main dependency. #159
+- Reject invalid `project_name` input (e.g. trailing dot, single character) at
+  the prompt with a friendly message instead of crashing later.
+- `just _update-linkml` uses `uv lock` instead of `uv add` to avoid side-effect
+  of adding linkml as main dependency. #159
 - Force-push to `gh-pages` during docs deployment to avoid history conflicts. #154
 - Align `uv sync` invocation in template workflows. #150
 - Skip ShEx integration test on Python 3.13 and install dependencies in the
@@ -145,7 +148,7 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 ### Added
 
 - New pre-commit command that updates the uv.lock file. #81
-- Automatic publishing of releases to Zenodo ([doi:10.5281/zenodo.15163584](https://doi.org/10.5281/zenodo.15163584)). #
+- Automatic publishing of releases to Zenodo ([doi:10.5281/zenodo.15163584](https://doi.org/10.5281/zenodo.15163584)).
 
 ### Fixed
 
