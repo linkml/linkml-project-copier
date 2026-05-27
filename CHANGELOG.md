@@ -41,13 +41,6 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - `tool.ruff` section in `pyproject.toml` excluding auto-generated `_version.py`
   and setting the minimum Python version. #170
 - Module docstrings in template `__init__.py` files to avoid ruff D104. #170
-
-### Changed
-
-- Default `license` is now `Apache-2.0` (was `MIT`). #151
-
-### Added
-
 - New `existing_license_file` prompt: when set to the path of a license file
   already present in the project (e.g. `LICENSE.md`, `LICENSE.txt`), the
   template skips generating a new `LICENSE` and points `license-files` in
@@ -61,10 +54,10 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - `just gen-project` tolerates a missing `project/` directory. #161
 - Generated YAML files (GitHub Actions, mkdocs) and `test_data.py` now pass
   default yamllint/ruff checks. #170
-- Reject invalid `project_name` input (e.g. trailing dot, single character) at
-  the prompt with a friendly message instead of crashing later.
 - `just _update-linkml` uses `uv lock` instead of `uv add` to avoid side-effect
   of adding linkml as main dependency. #159
+- Reject invalid `project_name` input (e.g. trailing dot, single character) at
+  the prompt with a friendly message instead of crashing later. #159
 - Force-push to `gh-pages` during docs deployment to avoid history conflicts. #154
 - Align `uv sync` invocation in template workflows. #150
 - Skip ShEx integration test on Python 3.13 and install dependencies in the
