@@ -19,7 +19,7 @@ repos:
       - id: yamllint
         args: [-c=.yamllint.yaml]
         exclude: ^\.copier-answers\.yml$
-        verbose: true  # Show warnings but don't fail the commit.
+        verbose: true  # Show warnings.
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2
