@@ -38,6 +38,9 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
   file is preserved and `pyproject.toml`'s `license-files` references it
   (using the PEP 639 SPDX expression `LicenseRef-Custom`). #162 (closes #151)
 - Add Noel McLoughlin as a co-creator in the Zenodo metadata. #165
+- `tool.ruff` section in `pyproject.toml` excluding auto-generated `_version.py`
+  and setting the minimum Python version. #170
+- Module docstrings in template `__init__.py` files to avoid ruff D104. #170
 
 ### Changed
 
@@ -56,6 +59,8 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 ### Fixed
 
 - `just gen-project` tolerates a missing `project/` directory. #161
+- Generated YAML files (GitHub Actions, mkdocs) and `test_data.py` now pass
+  default yamllint/ruff checks. #170
 - `just _update-linkml` uses `uv lock` instead of `uv add` to avoid side-effect of adding linkml as main dependency. #159
 - Force-push to `gh-pages` during docs deployment to avoid history conflicts. #154
 - Align `uv sync` invocation in template workflows. #150
@@ -74,6 +79,13 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - Group Dependabot updates into a single monthly PR. #139
 - Update URLs throughout the project to the new linkml monorepo / template
   location (README, migration notes, CHANGELOG). #132
+- Cleaner linter defaults: yamllint ignores non-compliant generated files and
+  uses line-length 88; pre-commit skips `.copier-answers.yml` and pins newer
+  tool versions. #170
+- Enable `set windows-shell` by default in the template `justfile`
+  (no-op on Linux/macOS). #170
+- README notes that migrating existing projects should review/merge template
+  linter configs rather than overwrite. #170
 
 ## Release [0.4.2] - 2026-02-25
 
