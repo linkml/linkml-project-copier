@@ -77,7 +77,7 @@ _wsl2_compat_check:
 # Initialize a new project (use this for projects not yet under version control)
 [group('project management')]
 setup: _wsl2_compat_check _check-config _git-init install _git-add && _setup_part2
-  git commit -m "Initialise git with minimal project" -a || true
+  git commit -m "chore: initialise git with minimal project" -a || true
 
 _setup_part2: gen-project gen-doc
   @echo
