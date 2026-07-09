@@ -1,0 +1,49 @@
+name: Audit dependencies
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# Global environment variables applied to all steps.
+env:
+  UV_PREVIEW: "1"        # Enables the preview uv audit and malware engines.
+  UV_MALWARE_CHECK: "1"  # Automatically blocks malicious installs on sync/run.
+
+jobs:
+  security-check:
+    name: Validate Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # https://github.com/actions/checkout
+      - name: Check out repository
+        uses: actions/checkout@v7.0.0
+        with:
+          persist-credentials: false
+
+      # https://github.com/astral-sh/setup-uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+
+      # This repo does not commit uv.lock (see .gitignore), so resolve a fresh
+      # lockfile here. The 7-day `exclude-newer` cooldown in pyproject.toml is
+      # applied during resolution.
+      - name: Resolve lockfile
+        run: uv lock
+
+      # Step 1: Scan the resolved lockfile for known vulnerabilities (CVEs).
+      - name: Audit lockfile for CVEs
+        run: uv audit
+
+      # Step 2: Sync the environment. With UV_MALWARE_CHECK enabled, a package
+      # flagged by an OSV malware advisory triggers an immediate non-zero exit.
+      # The malware gate only blocks malware already published as an OSV
+      # advisory; the `exclude-newer` cooldown covers the pre-advisory window.
+      - name: Verify environment sync (anti-malware gate)
+        run: uv sync --group test
