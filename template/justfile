@@ -109,7 +109,7 @@ site: gen-project gen-doc
 # Deploy documentation site to Github Pages
 [group('deployment')]
 deploy: site
-  mkd-gh-deploy
+  uv run mkdocs gh-deploy --force
 
 # Run all tests
 [group('model development')]
