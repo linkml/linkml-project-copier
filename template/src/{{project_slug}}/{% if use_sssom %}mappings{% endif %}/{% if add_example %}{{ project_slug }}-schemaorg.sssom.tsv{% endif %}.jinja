@@ -1,0 +1,14 @@
+#mapping_set_id: https://w3id.org/{{github_org}}/{{project_name}}/mappings/{{project_slug}}-schemaorg.sssom.tsv
+#mapping_set_description: Example mappings of demo schema entities to schema.org terms (classes and slots).
+#curie_map:
+#  {{project_slug}}: https://w3id.org/{{github_org}}/{{project_name}}/
+#  schema: http://schema.org/
+#license: https://creativecommons.org/publicdomain/zero/1.0/
+#mapping_provider: http://schema.org/
+subject_id	predicate_id	object_id	mapping_justification
+{{project_slug}}:NamedThing	skos:exactMatch	schema:Thing	semapv:ManualMappingCuration
+{{project_slug}}:Person	skos:exactMatch	schema:Person	semapv:MachineLearningBasedMatching
+{{project_slug}}:PersonCollection	skos:closeMatch	schema:ItemList	semapv:EmbeddingBasedMatching
+{{project_slug}}:primary_email	skos:exactMatch	schema:email	semapv:ManualMappingCuration
+{{project_slug}}:birth_date	skos:exactMatch	schema:birthDate	semapv:GraphRepresentationLearningBasedMatching
+{{project_slug}}:age_in_years	skos:relatedMatch	schema:Number	semapv:ManualMappingCuration

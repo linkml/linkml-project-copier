@@ -80,3 +80,92 @@ def test_just_gen_doc(integration_project):
     assert result.returncode == 0, (
         f"just gen-doc failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     )
+
+
+# ---------------------------------------------------------------------------
+# use_sssom=True project
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def sssom_integration_project(tmp_path_factory):
+    """Generate a use_sssom=True project with git init and installed deps."""
+    dest = tmp_path_factory.mktemp("sssom_integration")
+    project = generate_project(dest, {"use_sssom": True})
+    git_init(project)
+    result = run_just(project, "install")
+    if result.returncode != 0:
+        pytest.fail(
+            f"just install failed during fixture setup:\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+    return project
+
+
+def _restore_schema(project):
+    """Discard overlay edits so each test sees the pristine generated schema."""
+    subprocess.run(
+        ["git", "checkout", "--", "src/test_schema/schema"],
+        cwd=project,
+        check=True,
+        capture_output=True,
+    )
+
+
+def test_just_gen_and_validate_sssom(sssom_integration_project):
+    result = run_just(sssom_integration_project, "validate-sssom")
+    assert result.returncode == 0, (
+        f"just validate-sssom failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+    tsv = sssom_integration_project / "project/sssom/test_schema.sssom.tsv"
+    assert tsv.is_file(), "gen-sssom did not produce the expected TSV"
+
+
+def test_just_test_overlay_sssom(sssom_integration_project):
+    result = run_just(sssom_integration_project, "test-overlay-sssom")
+    assert result.returncode == 0, (
+        f"just test-overlay-sssom failed:\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+
+
+def test_sssom_drift_lifecycle(sssom_integration_project):
+    """The CI drift gate: check fails on a fresh project, passes after apply."""
+    project = sssom_integration_project
+    try:
+        check_fresh = run_just(project, "overlay-sssom", "--check")
+        assert check_fresh.returncode == 1, (
+            f"expected drift on fresh project:\n"
+            f"stdout: {check_fresh.stdout}\nstderr: {check_fresh.stderr}"
+        )
+        assert "Verification FAILED" in check_fresh.stdout + check_fresh.stderr
+
+        apply = run_just(project, "overlay-sssom")
+        assert apply.returncode == 0, (
+            f"just overlay-sssom failed:\nstdout: {apply.stdout}\nstderr: {apply.stderr}"
+        )
+
+        check_synced = run_just(project, "overlay-sssom", "--check")
+        assert check_synced.returncode == 0, (
+            f"expected in-sync after apply:\n"
+            f"stdout: {check_synced.stdout}\nstderr: {check_synced.stderr}"
+        )
+    finally:
+        _restore_schema(project)
+
+
+def test_just_setup_applies_sssom_overlay(sssom_integration_project):
+    """_setup_part2 applies the overlay, so setup leaves the project in sync."""
+    project = sssom_integration_project
+    try:
+        result = run_just(project, "_setup_part2")
+        assert result.returncode == 0, (
+            f"just _setup_part2 failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+        check = run_just(project, "overlay-sssom", "--check")
+        assert check.returncode == 0, (
+            f"project not in sync after setup:\n"
+            f"stdout: {check.stdout}\nstderr: {check.stderr}"
+        )
+    finally:
+        _restore_schema(project)

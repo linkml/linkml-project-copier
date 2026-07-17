@@ -34,15 +34,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
         with:
-          python-version: ${{ matrix.python-version }}
+          {% raw %}python-version: ${{ matrix.python-version }}{% endraw %}
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
       # https://github.com/actions/setup-python
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: {% raw %}Set up Python ${{ matrix.python-version }}{% endraw %}
         uses: actions/setup-python@v6.3.0
         with:
-          python-version: ${{ matrix.python-version }}
+          {% raw %}python-version: ${{ matrix.python-version }}{% endraw %}
 
       - name: Install just
         run: |
@@ -53,3 +53,10 @@ jobs:
 
       - name: Run test suite
         run: just test
+{%- if use_sssom %}
+
+      # Fails when src/<slug>/mappings/*.sssom.tsv and the schema have
+      # drifted apart; run "just overlay-sssom" locally to re-sync.
+      - name: Check SSSOM mappings are in sync with the schema
+        run: just overlay-sssom --check
+{%- endif %}

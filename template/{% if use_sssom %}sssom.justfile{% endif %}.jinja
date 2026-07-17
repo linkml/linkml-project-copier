@@ -1,0 +1,28 @@
+{% raw %}# ============== SSSOM mapping recipes ==============
+# Requires the "sssom" (sssom-py) dev dependency, added because this project
+# was created with `use_sssom: true`. See https://github.com/mapping-commons/sssom-py
+
+# Export schema element mappings (exact_mappings, close_mappings, enum meaning, etc.) to an SSSOM TSV file
+[group('model development')]
+gen-sssom:
+  mkdir -p {{dest}}/sssom
+  uv run gen-sssom -o {{dest}}/sssom/{{schema_name}}.sssom.tsv {{source_schema_path}}
+
+# Note: sssom-py's full JsonSchema validation is skipped because linkml's
+# gen-sssom writes the schema's SPDX license id (e.g. "MIT") into the
+# `license` metadata field, which sssom-py's schema requires to be a URI.
+# Validate CURIEs in the generated SSSOM mapping file against the schema's prefix map
+[group('model development')]
+validate-sssom: gen-sssom
+  uv run sssom validate -V StrictCurieFormat {{dest}}/sssom/{{schema_name}}.sssom.tsv
+
+# Apply SSSOM mappings under src/<slug>/mappings to schema YAML (with FLAGS)
+[group('model development')]
+overlay-sssom *FLAGS:
+  uv run python scripts/overlay_sssom.py {{FLAGS}}
+{% endraw %}{% if add_example %}
+# Run the SSSOM overlay unit tests
+[group('model development')]
+test-overlay-sssom: gen-python
+  uv run python -m pytest tests/ -k overlay_sssom -v
+{% endif %}

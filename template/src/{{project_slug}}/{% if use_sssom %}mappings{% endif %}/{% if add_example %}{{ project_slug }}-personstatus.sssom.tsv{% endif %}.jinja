@@ -1,0 +1,10 @@
+#mapping_set_id: https://w3id.org/{{github_org}}/{{project_name}}/mappings/{{project_slug}}-personstatus.sssom.tsv
+#mapping_set_description: Example permissible-value mappings for PersonStatus to NCIT terms.
+#curie_map:
+#  {{project_slug}}: https://w3id.org/{{github_org}}/{{project_name}}/
+#  NCIT: http://purl.obolibrary.org/obo/NCIT_
+#license: https://creativecommons.org/publicdomain/zero/1.0/
+subject_id	predicate_id	object_id	mapping_justification	comment
+{{project_slug}}:PersonStatus/ALIVE	skos:exactMatch	NCIT:C37987	semapv:ManualMappingCuration	ALIVE already has meaning PATO:0001421; this lands in exact_mappings instead.
+{{project_slug}}:PersonStatus/DEAD	skos:closeMatch	NCIT:C28554	semapv:LLMBasedMatching	Close mapping is independent of the existing meaning slot.
+{{project_slug}}:PersonStatus/UNKNOWN	skos:exactMatch	NCIT:C17998	semapv:TransformerBasedMatching	UNKNOWN has no meaning yet; the first exact mapping is promoted to meaning.

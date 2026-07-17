@@ -104,6 +104,17 @@ gh_action_docs_preview:
   type: bool
   default: true
 
+use_sssom:
+  help: |
+    Add support for SSSOM (Simple Standard for Sharing Ontology Mappings)?
+    This adds the "sssom" (sssom-py) and "ruamel.yaml" dev dependencies, a
+    src/<slug>/mappings/ directory for curated *.sssom.tsv files, the
+    scripts/overlay_sssom.py tool to project those mappings into the schema's
+    LinkML mapping slots, and `just` recipes: gen-sssom, validate-sssom,
+    overlay-sssom, and test-overlay-sssom.
+  type: bool
+  default: false
+
 # === copier configuration options ===
 # https://copier.readthedocs.io/en/stable/configuring/#available-settings
 
@@ -129,6 +140,7 @@ _skip_if_exists:
   - examples/README.md
   - project/*
   - src/{{project_slug}}/datamodel/*
+  - src/{{project_slug}}/mappings/*
   - src/{{project_slug}}/schema/*
   - tests/test_data.py
   - tests/data/*
@@ -139,6 +151,11 @@ _message_after_copy: |
 
   Next step (if you have not previously initialized your project)
   run "just setup" in the root of your project directory.
+  {%- if use_sssom %}
+
+  Note: "just setup" also runs "just overlay-sssom" to sync the SSSOM
+  mappings into the schema; CI checks this stays in sync (drift gate).
+  {%- endif %}
 
 _migrations:
   # Migrations are only run on update (not on copy) and only if the update goes

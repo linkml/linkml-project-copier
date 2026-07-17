@@ -1,0 +1,67 @@
+# Mappings Directory
+
+This directory stores cross-references from `{{project_slug}}` schema to external
+vocabularies as [SSSOM/TSV](https://mapping-commons.github.io/sssom/spec/) files.
+
+The TSV files are the source of truth, and `scripts/overlay_sssom.py` is the
+compiler that replays those mappings into LinkML schema mapping slots.
+
+## How The Overlay Script Works
+
+When you run `just overlay-sssom`, the script:
+
+1. Recursively reads every `*.sssom.tsv` under this directory.
+2. For each row, maps `predicate_id` to the correct LinkML slot.
+3. Finds the matching schema element by `subject_id` local name.
+4. Appends new CURIEs without duplicating existing ones.
+5. Adds missing object-side prefixes to schema `prefixes:` from `#curie_map:` metadata.
+
+It is idempotent: running it again without TSV changes does nothing.
+
+## What A Row Targets
+
+Use these subject formats:
+
+- `{{project_slug}}:<Name>` for class, slot, enum, type, or attribute.
+- `{{project_slug}}:<Enum>/<PermissibleValue>` for a permissible value.
+
+Subject prefixes are discovered from schema `default_prefix` and `name`.
+Use `--subject-prefix` only for aliases.
+
+## Predicate Mapping Rules
+
+- `skos:exactMatch` -> `exact_mappings`
+- `skos:closeMatch` -> `close_mappings`
+- `skos:broadMatch` -> `broad_mappings`
+- `skos:narrowMatch` -> `narrow_mappings`
+- `skos:relatedMatch` -> `related_mappings`
+- `owl:equivalentClass` -> `exact_mappings`
+- `owl:equivalentProperty` -> `exact_mappings`
+
+Ignored: `skos:broader`, `skos:narrower`, `rdf:type`, and unsupported predicates.
+
+## Permissible Value Rule
+
+For permissible values, the first `skos:exactMatch` is promoted to `meaning` if
+`meaning` is not already set. Additional exact matches are in `exact_mappings`.
+
+## Required TSV Fields
+
+Required columns are:
+
+- `subject_id`
+- `predicate_id`
+- `object_id`
+
+Include `#curie_map:` in metadata for every non-builtin prefix used in the file
+(project prefix and external prefixes like `schema`, `NCIT`).
+
+## Recommended Workflow
+
+```sh
+just overlay-sssom --dry-run
+just overlay-sssom
+just overlay-sssom --check
+```
+
+Use `--check` in CI to fail when TSV and schema are out of sync.
