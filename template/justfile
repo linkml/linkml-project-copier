@@ -80,6 +80,10 @@ setup: _wsl2_compat_check _check-config _git-init install _git-add && _setup_par
   git commit -m "Initialise git with minimal project" -a || true
 
 _setup_part2: gen-project gen-doc
+  @if [ -f sssom.justfile ]; then \
+    echo 'Applying SSSOM mappings to the schema ...'; \
+    just overlay-sssom; \
+  fi
   @echo
   @echo '=== Setup completed! ==='
   @echo 'Various model representations have been created under directory "project". By default'
@@ -284,6 +288,9 @@ _ensure_examples_output:  # Ensure a clean examples/output directory exists
 # ============== Include project-specific recipes ==============
 
 import "project.justfile"
+
+# SSSOM mapping recipes (present only if this project enabled `use_sssom`)
+import? "sssom.justfile"
 
 # ====== Override recipes from above with custom versions =======
 

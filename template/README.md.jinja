@@ -20,6 +20,10 @@
       (edit this)
     * [datamodel/](src/{{project_slug}}/datamodel) -- generated
       Python datamodel
+{%- if use_sssom %}
+    * [mappings/](src/{{project_slug}}/mappings) -- SSSOM/TSV
+      mapping files (`*.sssom.tsv`)
+{%- endif %}
 * [tests/](tests/) - Python tests
   * [data/](tests/data) - Example data
 
@@ -28,7 +32,29 @@
 There are several pre-defined command-recipes available.
 They are written for the command runner [just](https://github.com/casey/just/).
 To list all pre-defined commands, run `just` or `just --list`.
+{% if use_sssom %}
+## SSSOM Mappings
 
+Cross-references between schema elements and external vocabularies are
+maintained as [SSSOM/TSV](https://mapping-commons.github.io/sssom/spec/)
+files under [src/{{project_slug}}/mappings/](src/{{project_slug}}/mappings).
+[`scripts/overlay_sssom.py`](scripts/overlay_sssom.py) merges every
+`*.sssom.tsv` into the matching LinkML mapping slot on the matching
+schema element, and is idempotent. Multi-module schemas under
+[src/{{project_slug}}/schema/](src/{{project_slug}}/schema) are
+discovered recursively.
+
+```sh
+just overlay-sssom              # apply
+just overlay-sssom --dry-run    # preview without writing
+just overlay-sssom --check      # CI gate: exit 1 if schema is out of sync
+{% if add_example %}just test-overlay-sssom         # run the bundled unit test
+{% endif %}```
+
+Run `python scripts/overlay_sssom.py --help` for the full set of flags,
+overrides, and a description of how predicates, subject prefixes, and
+permissible-value `meaning` promotion are handled.
+{% endif %}
 ## Credits
 
 This project uses the template [linkml-project-copier](https://github.com/linkml/linkml-project-copier).

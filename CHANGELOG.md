@@ -17,6 +17,29 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.5.0...main)
 
+### Added
+
+- New opt-in `use_sssom` prompt (default: no) adding
+  [SSSOM](https://mapping-commons.github.io/sssom/spec/) support to generated
+  projects: the `sssom` (sssom-py) and `ruamel.yaml` dev dependencies, a
+  `src/<slug>/mappings/` directory for curated `*.sssom.tsv` mapping files
+  (example TSVs when `add_example` is chosen), and `scripts/overlay_sssom.py`
+  tool that merges the TSV mappings into the schema's LinkML mapping slots
+  (`exact_mappings`, `close_mappings`, etc.) idempotently, preserving YAML
+  comments and formatting. TSV parsing is delegated to sssom-py.
+- New `just` recipes for `use_sssom` projects, shipped in an `sssom.justfile`
+  imported optionally by main justfile: `gen-sssom` (export element mappings
+  to SSSOM/TSV), `validate-sssom` (CURIE validation of the export),
+  `overlay-sssom` (apply/preview/check the mappings overlay), and
+  `test-overlay-sssom` (bundled overlay unit tests; only with `add_example`).
+- CI drift gate for `use_sssom` projects: the generated `main.yaml` workflow
+  runs `just overlay-sssom --check` and fails on schema vs SSSOM TSV drift.
+  `just setup` applies the overlay so freshly projects start in sync.
+- Curated mapping files (`src/<slug>/mappings/*`) are protected from being
+  overwritten on template updates via `_skip_if_exists`.
+- Integration tests for the `use_sssom` template option (recipes, drift-gate
+  lifecycle, and setup sync) alongside `use_sssom`/`add_example` combinations.
+
 ## Release [0.5.0] - 2026-05-27
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...v0.5.0)

@@ -26,6 +26,10 @@ dev = [
     "mkdocs-pymdownx-material-extras>=2.5.6",
     "jupyter>=1.0.0",
     "mknotebooks>= 0.8.0",
+{%- if use_sssom %}
+    "sssom>=0.4.0",
+    "ruamel.yaml>=0.18",
+{%- endif %}
 ]
 
 # See https://hatch.pypa.io/latest/config/build/#file-selection for how to

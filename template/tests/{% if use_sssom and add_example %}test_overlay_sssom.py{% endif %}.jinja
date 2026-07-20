@@ -1,0 +1,356 @@
+"""Unit tests for the SSSOM overlay script.
+
+Copies the example schema and the bundled ``*.sssom.tsv`` files into a
+temporary tree, applies the overlay, and asserts that mappings landed in
+the expected LinkML slots. The script under test lives at
+``scripts/overlay_sssom.py`` and is loaded as a module via
+``importlib`` so the tests run without packaging it.
+"""
+import importlib.util
+import shutil
+import sys
+from pathlib import Path
+
+import pytest
+
+# Skip the whole file when ruamel.yaml isn't installed; the script
+# unconditionally imports it at module load time.
+pytest.importorskip("ruamel.yaml")
+from ruamel.yaml import YAML  # noqa: E402
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SCRIPT_PATH = PROJECT_ROOT / "scripts" / "overlay_sssom.py"
+SCHEMA_PATH = (
+    PROJECT_ROOT / "src" / "{{project_slug}}" / "schema" / "{{project_slug}}.yaml"
+)
+MAPPINGS_DIR = PROJECT_ROOT / "src" / "{{project_slug}}" / "mappings"
+
+
+def _load_overlay_module():
+    """Import ``scripts/overlay_sssom.py`` as the ``overlay_sssom`` module."""
+    spec = importlib.util.spec_from_file_location(
+        "overlay_sssom", SCRIPT_PATH,
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["overlay_sssom"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture(scope="module")
+def overlay():
+    """The imported overlay_sssom module."""
+    try:
+        yield _load_overlay_module()
+    finally:
+        sys.modules.pop("overlay_sssom", None)
+
+
+@pytest.fixture
+def scratch(tmp_path):
+    """Copy the example schema and mappings into an isolated tmp tree.
+
+    Returns ``(schema_path, mappings_dir)``.
+    """
+    schema_dst = tmp_path / "schema"
+    mappings_dst = tmp_path / "mappings"
+    shutil.copytree(SCHEMA_PATH.parent, schema_dst)
+    shutil.copytree(MAPPINGS_DIR, mappings_dst)
+    return schema_dst / SCHEMA_PATH.name, mappings_dst
+
+
+def _load_yaml(path):
+    y = YAML(typ="rt")
+    with open(path, "r", encoding="utf-8") as fh:
+        return y.load(fh)
+
+
+def test_example_assets_exist():
+    """The example schema and at least one SSSOM TSV must be present."""
+    assert SCRIPT_PATH.is_file(), f"missing {SCRIPT_PATH}"
+    assert SCHEMA_PATH.is_file(), f"missing {SCHEMA_PATH}"
+    tsvs = list(MAPPINGS_DIR.glob("*.sssom.tsv"))
+    assert tsvs, f"no *.sssom.tsv files in {MAPPINGS_DIR}"
+
+
+def test_overlay_applies_class_and_slot_mappings(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    assert mappings.rows, "no mapping rows loaded"
+
+    elements, links = overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    assert elements > 0
+    assert links > 0
+
+    data = _load_yaml(schema_path)
+    person = data["classes"]["Person"]
+    assert "schema:Person" in list(person.get("exact_mappings", []))
+
+    named_thing = data["classes"]["NamedThing"]
+    assert "schema:Thing" in list(named_thing.get("exact_mappings", []))
+
+    person_collection = data["classes"]["PersonCollection"]
+    assert "schema:ItemList" in list(person_collection.get("close_mappings", []))
+
+    email = data["slots"]["primary_email"]
+    assert "schema:email" in list(email.get("exact_mappings", []))
+
+    age = data["slots"]["age_in_years"]
+    assert "schema:Number" in list(age.get("related_mappings", []))
+
+
+def test_overlay_promotes_pv_meaning_and_preserves_existing(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+
+    data = _load_yaml(schema_path)
+    pvs = data["enums"]["PersonStatus"]["permissible_values"]
+
+    # UNKNOWN had no meaning; the script promotes the first exact CURIE
+    # from the SSSOM TSV into the meaning slot.
+    assert pvs["UNKNOWN"].get("meaning") == "NCIT:C17998"
+
+    # ALIVE already has meaning PATO:0001421 (unchanged); the exact
+    # mapping to NCIT:C37987 is appended to exact_mappings.
+    assert pvs["ALIVE"].get("meaning") == "PATO:0001421"
+    assert "NCIT:C37987" in list(pvs["ALIVE"].get("exact_mappings", []))
+
+    # DEAD already has meaning PATO:0001422 (unchanged); the close
+    # mapping to NCIT:C28554 lands in close_mappings.
+    assert pvs["DEAD"].get("meaning") == "PATO:0001422"
+    assert "NCIT:C28554" in list(pvs["DEAD"].get("close_mappings", []))
+
+
+def test_overlay_injects_referenced_prefixes(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+
+    data = _load_yaml(schema_path)
+    prefixes = data["prefixes"]
+    # NCIT is used by the personstatus TSV but not pre-declared.
+    assert "NCIT" in prefixes
+    assert prefixes["NCIT"].startswith("http://purl.obolibrary.org/obo/NCIT_")
+    # `schema` was already declared and must be retained.
+    assert "schema" in prefixes
+
+
+def test_overlay_is_idempotent(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    elements, links = overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    assert (elements, links) == (0, 0)
+
+
+def test_overlay_dry_run_does_not_write(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    original = schema_path.read_bytes()
+    mappings = overlay.load_mappings(mappings_dir)
+    elements, links = overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(), dry_run=True,
+    )
+    assert elements > 0 and links > 0
+    assert schema_path.read_bytes() == original
+
+
+def test_check_reports_missing_before_overlay(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    diagnostics = overlay.check_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    # Every example TSV row is initially unapplied; expect one
+    # diagnostic per row plus one for the undeclared NCIT prefix.
+    assert any("Person" in d and "schema:Person" in d for d in diagnostics)
+    assert any(
+        "permissible_value" in d and "UNKNOWN" in d and "NCIT:C17998" in d
+        for d in diagnostics
+    )
+    assert any(
+        "prefix 'NCIT'" in d and "not declared" in d for d in diagnostics
+    )
+
+
+def test_check_passes_after_overlay(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    mappings = overlay.load_mappings(mappings_dir)
+    overlay.overlay_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    diagnostics = overlay.check_file(
+        schema_path, mappings, extra_subject_prefixes=set(),
+    )
+    assert diagnostics == []
+
+
+def test_check_cli_exits_nonzero_when_out_of_sync(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    rc = overlay.main([
+        "--schema", str(schema_path),
+        "--mappings-dir", str(mappings_dir),
+        "--check",
+    ])
+    assert rc == 1
+
+
+def test_check_cli_exits_zero_when_in_sync(overlay, scratch):
+    schema_path, mappings_dir = scratch
+    overlay.main([
+        "--schema", str(schema_path),
+        "--mappings-dir", str(mappings_dir),
+    ])
+    rc = overlay.main([
+        "--schema", str(schema_path),
+        "--mappings-dir", str(mappings_dir),
+        "--check",
+    ])
+    assert rc == 0
+
+
+# ---------------------------------------------------------------------------
+# Multi-module / nested-subdirectory schemas
+# ---------------------------------------------------------------------------
+
+_MODULE_CORE = """\
+id: https://example.org/multi/core
+name: multi_core
+prefixes:
+  multi: https://example.org/multi/
+  linkml: https://w3id.org/linkml/
+default_prefix: multi
+default_range: string
+imports:
+  - linkml:types
+classes:
+  Widget:
+    description: A widget.
+    attributes:
+      label:
+        range: string
+"""
+
+_MODULE_NESTED = """\
+id: https://example.org/multi/ext/gadget
+name: multi_ext
+prefixes:
+  multi_ext: https://example.org/multi/ext/
+  linkml: https://w3id.org/linkml/
+default_prefix: multi_ext
+default_range: string
+imports:
+  - linkml:types
+classes:
+  Gadget:
+    description: A gadget defined in a nested module.
+"""
+
+_NON_LINKML_YAML = """\
+# Not a LinkML schema; should be silently skipped.
+site_name: docs
+nav:
+  - Home: index.md
+"""
+
+_MULTI_SSSOM = """\
+#curie_map:
+#  multi: https://example.org/multi/
+#  multi_ext: https://example.org/multi/ext/
+#  schema: http://schema.org/
+subject_id\tpredicate_id\tobject_id
+multi:Widget\tskos:exactMatch\tschema:Thing
+multi_ext:Gadget\tskos:exactMatch\tschema:Product
+multi:NotInAnyModule\tskos:exactMatch\tschema:Other
+"""
+
+
+@pytest.fixture
+def multi_module_tree(tmp_path):
+    """Two-module schema (root + nested subdir) plus a non-LinkML YAML."""
+    schema_dir = tmp_path / "schema"
+    nested_dir = schema_dir / "ext"
+    mappings_dir = tmp_path / "mappings"
+    nested_dir.mkdir(parents=True)
+    mappings_dir.mkdir()
+    (schema_dir / "core.yaml").write_text(_MODULE_CORE, encoding="utf-8")
+    (nested_dir / "gadget.yaml").write_text(_MODULE_NESTED, encoding="utf-8")
+    # Decoy YAML that must be silently skipped.
+    (schema_dir / "mkdocs.yaml").write_text(_NON_LINKML_YAML, encoding="utf-8")
+    (mappings_dir / "multi.sssom.tsv").write_text(
+        _MULTI_SSSOM, encoding="utf-8",
+    )
+    return schema_dir, mappings_dir
+
+
+def test_multi_module_overlay_routes_to_correct_module(
+    overlay, multi_module_tree,
+):
+    schema_dir, mappings_dir = multi_module_tree
+    rc = overlay.main([
+        "--schema-dir", str(schema_dir),
+        "--mappings-dir", str(mappings_dir),
+    ])
+    assert rc == 0
+    core = _load_yaml(schema_dir / "core.yaml")
+    nested = _load_yaml(schema_dir / "ext" / "gadget.yaml")
+    assert "schema:Thing" in list(
+        core["classes"]["Widget"].get("exact_mappings", [])
+    )
+    # Nested-module subject `multi_ext:Gadget` must land in the nested
+    # file, NOT in the core file.
+    assert "schema:Product" in list(
+        nested["classes"]["Gadget"].get("exact_mappings", [])
+    )
+    assert "schema:Product" not in list(
+        core["classes"]["Widget"].get("exact_mappings", [])
+    )
+
+
+def test_multi_module_check_dedups_unresolved_across_files(
+    overlay, multi_module_tree, capsys,
+):
+    schema_dir, mappings_dir = multi_module_tree
+    rc = overlay.main([
+        "--schema-dir", str(schema_dir),
+        "--mappings-dir", str(mappings_dir),
+        "--check",
+    ])
+    # Verification fails (3 rows initially missing + 1 unresolved subject).
+    assert rc == 1
+    captured = capsys.readouterr()
+    out = captured.out + captured.err
+    # `multi:NotInAnyModule` truly has no match anywhere -> exactly one
+    # unresolved-subject diagnostic, not one per file.
+    assert out.count("NotInAnyModule") == 1
+    # Multi-file output uses paths relative to the schema root.
+    assert "ext/gadget.yaml" in out
+    # The decoy YAML never appears in diagnostics.
+    assert "mkdocs.yaml" not in out
+
+
+def test_multi_module_check_passes_after_apply(overlay, multi_module_tree):
+    schema_dir, mappings_dir = multi_module_tree
+    overlay.main([
+        "--schema-dir", str(schema_dir),
+        "--mappings-dir", str(mappings_dir),
+    ])
+    rc = overlay.main([
+        "--schema-dir", str(schema_dir),
+        "--mappings-dir", str(mappings_dir),
+        "--check",
+    ])
+    # Still 1 because the truly-unresolved subject persists; no
+    # per-row diagnostics remain.
+    assert rc == 1
