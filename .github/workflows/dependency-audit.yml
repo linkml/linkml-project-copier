@@ -1,0 +1,48 @@
+name: Audit dependencies
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# Global environment variables applied to all steps.
+env:
+  UV_PREVIEW: "1"        # Enables the preview uv malware engine.
+  UV_MALWARE_CHECK: "1"  # Automatically blocks malicious installs on sync/run.
+
+jobs:
+  security-check:
+    name: Validate Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # https://github.com/actions/checkout
+      - name: Check out repository
+        uses: actions/checkout@v7.0.0
+        with:
+          persist-credentials: false
+
+      # https://github.com/astral-sh/setup-uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+
+      # This repository is a Copier template, not a distributable Python
+      # package: pyproject.toml declares only a `test` dependency group and no
+      # `[project]` table, so `uv audit` (which audits a project's
+      # dependencies) does not apply here. Instead we rely on the anti-malware
+      # gate below. Generated projects get full `uv audit` CVE scanning via
+      # template/.github/workflows/dependency-audit.yaml.
+      #
+      # Sync the test dependency group. With UV_MALWARE_CHECK enabled, a package
+      # flagged by an OSV malware advisory triggers an immediate non-zero exit.
+      # This repo does not commit uv.lock (see .gitignore), so `uv sync`
+      # resolves a fresh lockfile here; the 7-day `exclude-newer` cooldown in
+      # pyproject.toml is applied during that resolution and covers the window
+      # between a malicious upload and its OSV advisory.
+      - name: Verify environment sync (anti-malware gate)
+        run: uv sync --group test
