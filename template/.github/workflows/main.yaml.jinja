@@ -34,15 +34,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v10.2.0
         with:
-          python-version: ${{ matrix.python-version }}
+          {% raw %}python-version: ${{ matrix.python-version }}{% endraw %}
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
       # https://github.com/actions/setup-python
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: {% raw %}Set up Python ${{ matrix.python-version }}{% endraw %}
         uses: actions/setup-python@v7.0.0
         with:
-          python-version: ${{ matrix.python-version }}
+          {% raw %}python-version: ${{ matrix.python-version }}{% endraw %}
 
       - name: Install just
         run: |
@@ -53,3 +53,9 @@ jobs:
 
       - name: Run test suite
         run: just test
+{%- if use_sssom %}
+
+      # Fails when the schema lacks a mapping that src/<schema>/mappings carries.
+      - name: Check the schema carries the SSSOM mappings
+        run: just overlay-sssom --check
+{%- endif %}

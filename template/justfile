@@ -79,7 +79,7 @@ _wsl2_compat_check:
 setup: _wsl2_compat_check _check-config _git-init install _git-add && _setup_part2
   git commit -m "chore: initialise git with minimal project" -a || true
 
-_setup_part2: gen-project gen-doc
+_setup_part2: _overlay-sssom-if-used gen-project gen-doc
   @echo
   @echo '=== Setup completed! ==='
   @echo 'Various model representations have been created under directory "project". By default'
@@ -243,6 +243,10 @@ _add-artifacts:
 _serve:
   uv run mkdocs serve
 
+# Replay the curated SSSOM files before generating, when the project uses them
+_overlay-sssom-if-used:
+  @if [ -f sssom.justfile ]; then just overlay-sssom; fi
+
 # Initialize git repository
 _git-init:
   git init
@@ -284,6 +288,9 @@ _ensure_examples_output:  # Ensure a clean examples/output directory exists
 # ============== Include project-specific recipes ==============
 
 import "project.justfile"
+
+# SSSOM recipes, present when the project was created with use_sssom
+import? "sssom.justfile"
 
 # ====== Override recipes from above with custom versions =======
 
