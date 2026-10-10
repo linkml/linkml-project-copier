@@ -80,3 +80,57 @@ def test_just_gen_doc(integration_project):
     assert result.returncode == 0, (
         f"just gen-doc failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     )
+
+
+# ---------------------------------------------------------------------------
+# use_sssom=True project
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def sssom_integration_project(tmp_path_factory):
+    """Generate a use_sssom=True project with git init and installed deps."""
+    dest = tmp_path_factory.mktemp("sssom_integration")
+    project = generate_project(dest, {"use_sssom": True})
+    git_init(project)
+    result = run_just(project, "install")
+    if result.returncode != 0:
+        pytest.fail(
+            f"just install failed during fixture setup:\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+    return project
+
+
+def test_just_validate_sssom(sssom_integration_project):
+    result = run_just(sssom_integration_project, "validate-sssom")
+    assert result.returncode == 0, (
+        f"just validate-sssom failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+
+
+def test_sssom_overlay_lifecycle(sssom_integration_project):
+    """The check fails on a fresh project, the overlay adds the mappings, and then
+    the check passes and a second overlay leaves the schema untouched."""
+    project = sssom_integration_project
+    schema = project / "src/test_schema/schema/test_schema.yaml"
+
+    check = run_just(project, "overlay-sssom", "--check")
+    assert check.returncode == 1, (
+        f"expected drift on a fresh project:\nstdout: {check.stdout}\nstderr: {check.stderr}"
+    )
+
+    apply = run_just(project, "overlay-sssom")
+    assert apply.returncode == 0, (
+        f"just overlay-sssom failed:\nstdout: {apply.stdout}\nstderr: {apply.stderr}"
+    )
+    text = schema.read_text(encoding="utf-8")
+    assert "NCIT:C17998" in text
+
+    check = run_just(project, "overlay-sssom", "--check")
+    assert check.returncode == 0, (
+        f"expected the schema in sync:\nstdout: {check.stdout}\nstderr: {check.stderr}"
+    )
+    again = run_just(project, "overlay-sssom")
+    assert again.returncode == 0
+    assert schema.read_text(encoding="utf-8") == text, "a second overlay changed the schema"

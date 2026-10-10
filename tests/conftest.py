@@ -40,6 +40,20 @@ def no_docs_preview_project(tmp_path_factory):
     return generate_project(dest, {"gh_action_docs_preview": False})
 
 
+@pytest.fixture(scope="session")
+def sssom_project(tmp_path_factory):
+    """Project generated with use_sssom=True."""
+    dest = tmp_path_factory.mktemp("sssom")
+    return generate_project(dest, {"use_sssom": True})
+
+
+@pytest.fixture(scope="session")
+def sssom_no_example_project(tmp_path_factory):
+    """Project generated with use_sssom=True and add_example=False."""
+    dest = tmp_path_factory.mktemp("sssom_no_example")
+    return generate_project(dest, {"use_sssom": True, "add_example": False})
+
+
 @pytest.fixture(scope="session", params=ALL_LICENSES)
 def license_project(request, tmp_path_factory):
     """Project generated for each license type. Returns (license_name, project_path)."""

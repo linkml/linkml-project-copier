@@ -25,6 +25,7 @@ DEFAULT_DATA = {
     "add_example": True,
     "gh_action_pypi": True,
     "gh_action_docs_preview": True,
+    "use_sssom": False,
 }
 
 
