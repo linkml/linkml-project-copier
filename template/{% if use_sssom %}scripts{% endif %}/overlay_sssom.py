@@ -6,10 +6,10 @@ of truth for how the elements of this schema relate to other vocabularies.
 This tool reads them with sssom-py, resolves every subject to a class, slot,
 enum or permissible value of the schema, and adds the object CURIE to the
 LinkML mapping slot that the predicate names. The schema is rewritten with
-ruamel.yaml so that comments and layout survive; a second run changes nothing.
+ruamel.yaml so that comments and layout survive. A second run changes nothing.
 
-With ``--check`` nothing is written and the exit status is 1 when the schema
-lacks a mapping that the files carry, which makes it the CI gate.
+With ``--check`` nothing is written. The exit status is then 1 when the schema
+lacks a mapping that the files carry, and that makes ``--check`` the CI gate.
 
 The specification is linkml/linkml-project-copier#163.
 """
@@ -17,6 +17,7 @@ The specification is linkml/linkml-project-copier#163.
 import argparse
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 from linkml_runtime.utils.schemaview import SchemaView
 from ruamel.yaml import YAML
@@ -46,9 +47,10 @@ def read_mappings(mappings_dir: Path, view: SchemaView) -> tuple[list[tuple], di
 
     A row is (file, subject as written, subject IRI, mapping slot, object).
     sssom-py parses the table and its metadata block. The subject is expanded
-    with the file's own curie map, or failing that with the schema's prefixes.
-    Rows that state the absence of a mapping, through a ``Not`` predicate
-    modifier or the object ``sssom:NoTermFound``, are skipped.
+    with the file's own curie map, or with the schema's prefixes when the curie
+    map cannot expand it. A row is skipped when it states the absence of a
+    mapping, through a ``Not`` predicate modifier or the object
+    ``sssom:NoTermFound``.
     """
     rows, prefixes = [], {}
     for path in sorted(mappings_dir.glob("*.sssom.tsv")):
@@ -68,72 +70,84 @@ def read_mappings(mappings_dir: Path, view: SchemaView) -> tuple[list[tuple], di
     return rows, prefixes
 
 
-def schema_targets(view: SchemaView, doc: CommentedMap) -> dict[str, CommentedMap]:
-    """Map every name and URI that addresses an element of this file to its YAML node.
+def schema_targets(view: SchemaView, doc: CommentedMap) -> dict[str, tuple]:
+    """Map every name and URI that addresses an element of this file to where it sits.
 
     Classes, slots, enums and class attributes are reachable by name, by the
     URI they declare (``class_uri`` and the like) and by their native URI under
     the schema's default prefix. A permissible value is reachable as
-    ``<enum>#<value>``, the form that linkml's ``gen-sssom`` writes for it.
+    ``<enum>#<value>``, with the text as written or percent-encoded. The
+    percent-encoded form is the one linkml's ``gen-sssom`` writes for a value
+    such as ``not known``. Each target is a pair: the YAML mapping that holds
+    the element, and the element's key. So an element written with an empty
+    body keeps the empty body unless a mapping is added to it.
     """
     targets = {}
-
-    def node_for(parent, key):
-        if parent[key] is None:
-            parent[key] = CommentedMap()
-        return parent[key]
 
     def keys_for(name):
         declared = view.get_uri(name, expand=True)
         return {name, declared, view.get_uri(name, expand=True, native=True)}
 
     for section in ("classes", "slots", "enums"):
-        for name in doc.get(section) or {}:
-            node = node_for(doc[section], name)
-            targets.update(dict.fromkeys(keys_for(name), node))
-            for attribute in node.get("attributes") or {}:
-                attribute_node = node_for(node["attributes"], attribute)
-                targets.update(dict.fromkeys(keys_for(attribute), attribute_node))
-            for value in node.get("permissible_values") or {}:
-                keys = {f"{key}#{value}" for key in keys_for(name)}
-                value_node = node_for(node["permissible_values"], value)
-                targets.update(dict.fromkeys(keys, value_node))
+        elements = doc.get(section) or {}
+        for name, node in elements.items():
+            targets.update(dict.fromkeys(keys_for(name), (elements, name)))
+            attributes = (node or {}).get("attributes") or {}
+            for attribute in attributes:
+                targets.update(
+                    dict.fromkeys(keys_for(attribute), (attributes, attribute))
+                )
+            values = (node or {}).get("permissible_values") or {}
+            for value in values:
+                texts = {value, quote(str(value).strip(), safe="")}
+                keys = {f"{key}#{text}" for key in keys_for(name) for text in texts}
+                targets.update(dict.fromkeys(keys, (values, value)))
     return targets
 
 
 def overlay(
     doc: CommentedMap, view: SchemaView, rows: list, prefixes: dict, check: bool
-) -> list[str]:
-    """Add every mapping the schema lacks and return one line per addition.
+) -> tuple[list[str], list[str]]:
+    """Add every mapping the schema lacks and the prefixes those mappings need.
 
-    A prefix that an object uses and the schema does not declare is copied from
-    the SSSOM curie map into ``prefixes``. With ``check`` nothing is changed.
+    Returns one line per mapping and one per prefix that the schema lacks. A
+    prefix is copied from the SSSOM curie map into ``prefixes`` when an object
+    uses it and the schema does not declare it. With ``check`` nothing is
+    changed.
     """
     targets = schema_targets(view, doc)
-    declared = doc.setdefault("prefixes", CommentedMap())
-    known = set(declared) | set(view.namespaces())
-    added = []
+    declared = doc.get("prefixes")
+    known = set(declared or {}) | set(view.namespaces())
+    mappings, new_prefixes, seen = [], [], set()
     for file, written, subject, slot, obj in rows:
-        node = targets.get(subject)
-        if node is None:
+        if subject not in targets:
             sys.exit(f"{file}: subject {written} is not an element of this schema")
-        identity = (node.get(key) for key in IDENTITY_SLOTS)
+        parent, key = targets[subject]
+        node = parent[key] or {}
+        identity = {node.get(name) for name in IDENTITY_SLOTS}
         if slot == "exact_mappings" and obj in identity:
             continue
-        if obj in (node.get(slot) or []):
+        # Two rows can name the same element, by name and by URI or in two
+        # files. The mapping is listed once, in check mode as when writing.
+        if obj in (node.get(slot) or []) or (id(parent), key, slot, obj) in seen:
             continue
-        added.append(f"{written}: {slot} gets {obj}")
+        seen.add((id(parent), key, slot, obj))
+        mappings.append(f"{written}: {slot} gets {obj}")
         if not check:
-            node[slot] = [*(node.get(slot) or []), obj]
+            if parent[key] is None:
+                parent[key] = CommentedMap()
+            parent[key][slot] = [*(parent[key].get(slot) or []), obj]
         prefix = obj.split(":", 1)[0]
         if ":" in obj and prefix not in known:
             if prefix not in prefixes:
                 sys.exit(f"{file}: prefix {prefix} missing from curie map and schema")
-            added.append(f"prefixes: {prefix} gets {prefixes[prefix]}")
+            new_prefixes.append(f"prefixes: {prefix} gets {prefixes[prefix]}")
             known.add(prefix)
             if not check:
+                if declared is None:
+                    declared = doc["prefixes"] = CommentedMap()
                 declared[prefix] = prefixes[prefix]
-    return added
+    return mappings, new_prefixes
 
 
 def main(argv=None) -> int:
@@ -145,7 +159,7 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="write nothing; list the mappings the schema lacks and exit 1 if any",
+        help="write nothing, list the mappings the schema lacks, and exit 1 if any",
     )
     args = parser.parse_args(argv)
 
@@ -159,17 +173,18 @@ def main(argv=None) -> int:
     view = SchemaView(str(args.schema))
 
     rows, prefixes = read_mappings(args.mappings_dir, view)
-    added = overlay(doc, view, rows, prefixes, check=args.check)
-    for line in added:
+    mappings, new_prefixes = overlay(doc, view, rows, prefixes, check=args.check)
+    for line in mappings + new_prefixes:
         print(line)
-    if not added:
+    if not mappings:
         print(f"{args.schema} carries every mapping in {args.mappings_dir}")
     elif args.check:
-        print(f"{args.schema} lacks {len(added)} of them", file=sys.stderr)
+        print(f"{args.schema} lacks {len(mappings)} of them", file=sys.stderr)
         return 1
     else:
         yaml.dump(doc, args.schema)
-        print(f"{args.schema}: {len(added)} added")
+        noun = "mapping" if len(mappings) == 1 else "mappings"
+        print(f"{args.schema}: {len(mappings)} {noun} added")
     return 0
 
 

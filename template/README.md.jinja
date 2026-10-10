@@ -37,10 +37,10 @@ To list all pre-defined commands, run `just` or `just --list`.
 
 Mappings from this schema to other vocabularies are curated as
 [SSSOM](https://mapping-commons.github.io/sssom/) files under
-[src/{{project_slug}}/mappings/](src/{{project_slug}}/mappings) and replayed
-onto the schema's mapping slots by `just overlay-sssom`. `just validate-sssom`
-checks the files, `just overlay-sssom --check` is the CI gate, and
-`just gen-sssom` exports the schema's mapping slots as SSSOM.
+[src/{{project_slug}}/mappings/](src/{{project_slug}}/mappings).
+`just overlay-sssom` replays them onto the schema's mapping slots.
+`just validate-sssom` checks the files, `just overlay-sssom --check` is the CI
+gate, and `just gen-sssom` exports the schema's mapping slots as SSSOM.
 {% endif %}
 ## Credits
 

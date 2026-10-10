@@ -20,9 +20,9 @@ just gen-sssom              # export the schema's mapping slots as SSSOM
 
 The subject names an element of this schema: `{{project_slug}}:Person` for a
 class, slot or enum, or `{{project_slug}}:PersonStatus#ALIVE` for a permissible
-value, which is the form `gen-sssom` writes. The object is kept as the CURIE
-you write, and a prefix the schema does not declare is copied from the file's
-`curie_map`. The predicate chooses the slot:
+value, which is the form `gen-sssom` writes. The overlay keeps the object as
+the CURIE you write. It copies a prefix the schema does not declare from the
+file's `curie_map`. The predicate chooses the slot:
 
 - `skos:exactMatch`, `owl:equivalentClass` and `owl:equivalentProperty` go to `exact_mappings`
 - `skos:closeMatch` goes to `close_mappings`
@@ -31,16 +31,21 @@ you write, and a prefix the schema does not declare is copied from the file's
 - `skos:relatedMatch` goes to `related_mappings`
 - `skos:mappingRelation` goes to `mappings`
 
-The overlay only adds. An exact match to the URI an element already declares
-as `class_uri`, `slot_uri`, `enum_uri` or `meaning` is not repeated, a mapping
-the schema already holds is not added twice, and removing a row does not remove
-anything from the schema. `mapping_justification`, `confidence` and the other
-SSSOM columns have no LinkML counterpart and stay in the file.
+The overlay only adds:
+
+- it does not repeat an exact match to the URI an element already declares as
+  `class_uri`, `slot_uri`, `enum_uri` or `meaning`;
+- it does not add a mapping the schema already holds a second time;
+- it removes nothing from the schema when you remove a row.
+
+`mapping_justification`, `confidence` and the other SSSOM columns have no
+LinkML counterpart and stay in the file.
 {% if add_example %}
 ## The example file
 
 `{{project_slug}}.sssom.tsv` maps the example schema to schema.org and NCIT.
-Its first row maps `NamedThing` to `schema:Thing`, which the schema already
-declares as the class URI, so the overlay adds nothing for it. The `ALIVE` row
-keeps the value's `meaning` and lands in `exact_mappings`.
+Its first row maps `NamedThing` to `schema:Thing`. The overlay adds nothing
+for that row, because the schema already declares `schema:Thing` as the class
+URI. The `ALIVE` row leaves the value's `meaning` as it is, and the overlay
+adds its object to `exact_mappings`.
 {% endif %}

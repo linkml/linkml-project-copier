@@ -1,7 +1,7 @@
 # ============== SSSOM mapping recipes ==============
-# Imported by the main justfile because this project was created with
-# `use_sssom`. The curated mappings live in src/<schema>/mappings as SSSOM
-# files, and scripts/overlay_sssom.py replays them onto the schema.
+# The main justfile imports this file because this project was created with
+# `use_sssom`. The curated mappings are SSSOM files in src/<schema>/mappings,
+# and scripts/overlay_sssom.py replays them onto the schema.
 # Specification: https://github.com/linkml/linkml-project-copier/issues/163
 
 mappings_dir := src / schema_name / "mappings"
@@ -11,7 +11,7 @@ mappings_dir := src / schema_name / "mappings"
 validate-sssom:
   for f in {{mappings_dir}}/*.sssom.tsv; do [ -e "$f" ] || continue; uv run sssom validate "$f" || exit 1; done
 
-# Replay the curated SSSOM files onto the schema's mapping slots (pass --check to only report drift)
+# Replay the curated SSSOM files onto the schema's mapping slots (pass --check to list the mappings the schema lacks, without writing)
 [group('model development')]
 overlay-sssom *FLAGS:
   uv run python scripts/overlay_sssom.py {{FLAGS}} {{source_schema_path}} {{mappings_dir}}
