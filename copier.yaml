@@ -104,6 +104,16 @@ gh_action_docs_preview:
   type: bool
   default: true
 
+use_sssom:
+  help: |
+    Curate the schema's mappings to other vocabularies as SSSOM files?
+    This adds src/<slug>/mappings/ for the *.sssom.tsv files, the "sssom" and
+    "ruamel.yaml" dev dependencies, scripts/overlay_sssom.py, which replays
+    the files onto the schema's mapping slots, and the just recipes
+    validate-sssom, overlay-sssom and gen-sssom.
+  type: bool
+  default: false
+
 # === copier configuration options ===
 # https://copier.readthedocs.io/en/stable/configuring/#available-settings
 
@@ -129,6 +139,7 @@ _skip_if_exists:
   - examples/README.md
   - project/*
   - src/{{project_slug}}/datamodel/*
+  - src/{{project_slug}}/mappings/*
   - src/{{project_slug}}/schema/*
   - tests/test_data.py
   - tests/data/*
@@ -139,6 +150,11 @@ _message_after_copy: |
 
   Next step (if you have not previously initialized your project)
   run "just setup" in the root of your project directory.
+  {%- if use_sssom %}
+
+  Note: "just setup" also runs "just overlay-sssom", which replays the SSSOM
+  files onto the schema. CI fails when the two drift apart.
+  {%- endif %}
 
 _migrations:
   # Migrations are only run on update (not on copy) and only if the update goes

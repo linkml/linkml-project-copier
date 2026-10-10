@@ -1,0 +1,46 @@
+# Mappings Directory
+
+The `*.sssom.tsv` files in this directory are the source of truth for how the
+elements of the `{{project_slug}}` schema relate to other vocabularies. They
+follow the [SSSOM](https://mapping-commons.github.io/sssom/) standard, and
+`scripts/overlay_sssom.py` replays them onto the schema's LinkML mapping slots.
+The full specification is
+[linkml-project-copier#163](https://github.com/linkml/linkml-project-copier/issues/163).
+
+## Workflow
+
+```sh
+just validate-sssom         # check every file with sssom-py
+just overlay-sssom          # add the mappings the schema lacks
+just overlay-sssom --check  # report drift and exit 1; CI runs this
+just gen-sssom              # export the schema's mapping slots as SSSOM
+```
+
+## Writing a row
+
+The subject names an element of this schema: `{{project_slug}}:Person` for a
+class, slot or enum, or `{{project_slug}}:PersonStatus#ALIVE` for a permissible
+value, which is the form `gen-sssom` writes. The object is kept as the CURIE
+you write, and a prefix the schema does not declare is copied from the file's
+`curie_map`. The predicate chooses the slot:
+
+- `skos:exactMatch`, `owl:equivalentClass` and `owl:equivalentProperty` go to `exact_mappings`
+- `skos:closeMatch` goes to `close_mappings`
+- `skos:broadMatch` goes to `broad_mappings`
+- `skos:narrowMatch` goes to `narrow_mappings`
+- `skos:relatedMatch` goes to `related_mappings`
+- `skos:mappingRelation` goes to `mappings`
+
+The overlay only adds. An exact match to the URI an element already declares
+as `class_uri`, `slot_uri`, `enum_uri` or `meaning` is not repeated, a mapping
+the schema already holds is not added twice, and removing a row does not remove
+anything from the schema. `mapping_justification`, `confidence` and the other
+SSSOM columns have no LinkML counterpart and stay in the file.
+{% if add_example %}
+## The example file
+
+`{{project_slug}}.sssom.tsv` maps the example schema to schema.org and NCIT.
+Its first row maps `NamedThing` to `schema:Thing`, which the schema already
+declares as the class URI, so the overlay adds nothing for it. The `ALIVE` row
+keeps the value's `meaning` and lands in `exact_mappings`.
+{% endif %}
