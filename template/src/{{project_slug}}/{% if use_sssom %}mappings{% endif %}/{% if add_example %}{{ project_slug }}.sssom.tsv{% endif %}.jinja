@@ -1,0 +1,15 @@
+#curie_map:
+#  {{project_slug}}: https://w3id.org/{{github_org}}/{{project_name}}/
+#  NCIT: http://purl.obolibrary.org/obo/NCIT_
+#  schema: http://schema.org/
+#mapping_set_id: https://w3id.org/{{github_org}}/{{project_name}}/mappings/{{project_slug}}.sssom.tsv
+#mapping_set_description: Example mappings from the {{project_name}} schema to schema.org and NCIT.
+#license: https://creativecommons.org/publicdomain/zero/1.0/
+subject_id	predicate_id	object_id	object_label	mapping_justification
+{{project_slug}}:NamedThing	skos:exactMatch	schema:Thing	Thing	semapv:ManualMappingCuration
+{{project_slug}}:Person	skos:exactMatch	schema:Person	Person	semapv:ManualMappingCuration
+{{project_slug}}:PersonCollection	skos:closeMatch	schema:ItemList	ItemList	semapv:ManualMappingCuration
+{{project_slug}}:age_in_years	skos:closeMatch	NCIT:C25150	Age	semapv:ManualMappingCuration
+{{project_slug}}:vital_status	skos:exactMatch	NCIT:C25717	Vital Status	semapv:ManualMappingCuration
+{{project_slug}}:PersonStatus#ALIVE	skos:exactMatch	NCIT:C37987	Alive	semapv:ManualMappingCuration
+{{project_slug}}:PersonStatus#UNKNOWN	skos:exactMatch	NCIT:C17998	Unknown	semapv:ManualMappingCuration
