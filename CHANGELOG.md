@@ -17,6 +17,14 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.5.0...main)
 
+### Added
+
+- Opt-in `use_sssom` prompt (default: no). Curated `*.sssom.tsv` files under
+  `src/<slug>/mappings/` are replayed onto the schema's mapping slots by a thin
+  `scripts/overlay_sssom.py`, with the `just` recipes `validate-sssom`,
+  `overlay-sssom` and `gen-sssom` and a CI step that fails when the schema
+  lacks a mapping the files carry. Specification in #163.
+
 ## Release [0.5.0] - 2026-05-27
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...v0.5.0)
