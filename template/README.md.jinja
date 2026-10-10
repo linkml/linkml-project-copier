@@ -20,6 +20,10 @@
       (edit this)
     * [datamodel/](src/{{project_slug}}/datamodel) -- generated
       Python datamodel
+{%- if use_sssom %}
+    * [mappings/](src/{{project_slug}}/mappings) -- SSSOM mapping
+      files (`*.sssom.tsv`)
+{%- endif %}
 * [tests/](tests/) - Python tests
   * [data/](tests/data) - Example data
 
@@ -28,7 +32,16 @@
 There are several pre-defined command-recipes available.
 They are written for the command runner [just](https://github.com/casey/just/).
 To list all pre-defined commands, run `just` or `just --list`.
+{% if use_sssom %}
+## SSSOM Mappings
 
+Mappings from this schema to other vocabularies are curated as
+[SSSOM](https://mapping-commons.github.io/sssom/) files under
+[src/{{project_slug}}/mappings/](src/{{project_slug}}/mappings) and replayed
+onto the schema's mapping slots by `just overlay-sssom`. `just validate-sssom`
+checks the files, `just overlay-sssom --check` is the CI gate, and
+`just gen-sssom` exports the schema's mapping slots as SSSOM.
+{% endif %}
 ## Credits
 
 This project uses the template [linkml-project-copier](https://github.com/linkml/linkml-project-copier).
