@@ -17,6 +17,11 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.5.0...main)
 
+### Fixed
+
+- `just gen-project` no longer overwrites the OWL that `config.yaml` configures.
+  `LINKML_GENERATORS_OWL_ARGS` is gone; set OWL options in `config.yaml`.
+
 ## Release [0.5.0] - 2026-05-27
 
 [Full changelog](https://github.com/linkml/linkml-project-copier/compare/v0.4.2...v0.5.0)
