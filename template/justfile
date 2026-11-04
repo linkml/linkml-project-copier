@@ -31,7 +31,6 @@ config_yaml := if env_var_or_default("LINKML_GENERATORS_CONFIG_YAML", "") != "" 
 }
 gen_doc_args := env_var_or_default("LINKML_GENERATORS_DOC_ARGS", "")
 gen_java_args := env_var_or_default("LINKML_GENERATORS_JAVA_ARGS", "")
-gen_owl_args := env_var_or_default("LINKML_GENERATORS_OWL_ARGS", "")
 gen_pydantic_args := env_var_or_default("LINKML_GENERATORS_PYDANTIC_ARGS", "")
 gen_ts_args := env_var_or_default("LINKML_GENERATORS_TYPESCRIPT_ARGS", "")
 
@@ -149,11 +148,6 @@ gen-project:
     mkdir -p {{dest}}/typescript ; \
   fi
   uv run gen-typescript {{gen_ts_args}} {{source_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts
-
-  @if [ ! -d "{{dest}}/owl" ]; then \
-    mkdir -p {{dest}}/owl ; \
-  fi
-  uv run gen-owl {{gen_owl_args}} {{source_schema_path}} > "{{dest}}/owl/{{schema_name}}.owl.ttl"
 
 # ============== Migrations recipes for Copier ==============
 

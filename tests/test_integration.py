@@ -80,3 +80,18 @@ def test_just_gen_doc(integration_project):
     assert result.returncode == 0, (
         f"just gen-doc failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     )
+
+
+def test_just_gen_project_owl_follows_config(integration_project):
+    """The OWL file holds what config.yaml's owl section asks for."""
+    result = run_just(integration_project, "gen-project")
+    assert result.returncode == 0, (
+        f"just gen-project failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+    owl = (integration_project / "project" / "owl" / "test_schema.owl.ttl").read_text(
+        encoding="utf-8"
+    )
+    # add_root_classes: true makes each class a subclass of linkml:ClassDefinition.
+    assert "linkml:ClassDefinition" in owl
+    # gen-project names the ontology by the schema's id, without a file suffix.
+    assert ".owl.ttl>" not in owl
