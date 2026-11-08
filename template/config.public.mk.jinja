@@ -7,7 +7,7 @@
 # Note:
 # - just works fine with quoted variables of dot-env files like this one
 LINKML_SCHEMA_NAME="{{project_slug}}"
-LINKML_SCHEMA_AUTHOR="{{author}}"
+LINKML_SCHEMA_AUTHOR={{ author | to_json(ensure_ascii=False) | replace('$', '\\$') }}
 LINKML_SCHEMA_DESCRIPTION="{{project_description}}"
 LINKML_SCHEMA_SOURCE_DIR="src/{{project_slug}}/schema"
 

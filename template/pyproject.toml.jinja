@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "{{project_slug}}"
 description = "{{project_description}}"
 authors = [
-  {name = "{{full_name}}", email = "{{email}}"},
+  {name = {{ full_name | to_json(ensure_ascii=False) }}, email = {{ email | to_json(ensure_ascii=False) }}},
 ]
 license = "{{license}}"
 license-files = ["{{ existing_license_file or 'LICENSE' }}"]
