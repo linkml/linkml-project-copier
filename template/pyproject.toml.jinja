@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "{{project_slug}}"
-description = "{{project_description}}"
+description = {{ project_description.split() | join(' ') | to_json(ensure_ascii=False) }}
 authors = [
   {name = "{{full_name}}", email = "{{email}}"},
 ]
