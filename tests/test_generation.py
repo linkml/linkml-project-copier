@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import sys
 
 import yaml
 import pytest
+
+from tests.helpers import generate_project
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -200,3 +203,37 @@ class TestCopierAnswers:
 
     def test_github_org(self, answers):
         assert answers["github_org"] == "test-org"
+
+
+class TestAwkwardDescription:
+    """A description with special characters must still render valid files."""
+
+    @pytest.mark.parametrize(
+        ("description", "summary"),
+        [
+            ("first\nsecond", "first second"),
+            ("first\r\nsecond", "first second"),
+            ('A "quoted" word', 'A "quoted" word'),
+            ("path C:\\new\\users", "path C:\\new\\users"),
+            ("  Ünï  🚀  ", "Ünï 🚀"),
+            ("  first\nsecond", "first second"),
+            ('a """ b', 'a """ b'),
+            ("costs $HOME", "costs $HOME"),
+        ],
+    )
+    def test_files_parse(self, tmp_path, description, summary):
+        project = generate_project(tmp_path / "project", {"project_description": description})
+
+        pyproject = tomllib.loads((project / "pyproject.toml").read_text(encoding="utf-8"))
+        assert pyproject["project"]["description"] == summary
+
+        init = (project / "src/test_schema/__init__.py").read_text(encoding="utf-8")
+        docstring = ast.get_docstring(ast.parse(init))
+        assert docstring.split() == ["test-schema.", *description.split()]
+
+        config = (project / "config.public.mk").read_text(encoding="utf-8")
+        assert "$HOME" not in config.replace("\\$HOME", "")
+
+        schema_path = project / "src/test_schema/schema/test_schema.yaml"
+        schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
+        assert schema["description"].split() == description.split()

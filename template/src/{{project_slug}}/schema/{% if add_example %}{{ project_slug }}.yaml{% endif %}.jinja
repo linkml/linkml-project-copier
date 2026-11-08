@@ -3,7 +3,7 @@ id: https://w3id.org/{{github_org}}/{{project_name}}
 name: {{project_name}}
 title: {{project_name}}
 description: |-
-  {{project_description}}
+  {{ project_description | trim | indent(2) }}
 license: {{license}}
 see_also:
   - https://{{github_org}}.github.io/{{project_name}}
