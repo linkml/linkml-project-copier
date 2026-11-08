@@ -14,3 +14,8 @@ updates:
       github-actions:
         patterns:
           - "*"
+    # Wait 7 days after a release before opening an update PR, giving time for
+    # malware/CVE advisories to surface (mirrors the uv `exclude-newer` cooldown).
+    # Note: github-actions only supports default-days, not the semver-*-days properties.
+    cooldown:
+      default-days: 7
